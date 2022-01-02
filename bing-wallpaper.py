@@ -8,8 +8,8 @@ from urllib.request import urlopen, urlretrieve
 import json
 import re
 
-BING_BASE_URL = "http://bing.com"
-BING_IMAGE_DAY_URL = "http://bing.com/HPImageArchive.aspx?format=js&n="
+BING_BASE_URL = "https://bing.com"
+BING_IMAGE_DAY_URL = "https://bing.com/HPImageArchive.aspx?format=js&n="
 
 
 def parse_picture_url(batch):
