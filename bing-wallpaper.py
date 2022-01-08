@@ -12,8 +12,9 @@ BING_BASE_URL = "https://bing.com"
 BING_IMAGE_DAY_URL = "https://bing.com/HPImageArchive.aspx?format=js&n="
 
 
-def parse_picture_url(batch):
-    """Get the relative urls of the pictures from the API."""
+def get_last_images_data(batch):
+    """Get data of the pictures from the API. Returns a list of data for each
+    picture."""
     if not batch:
         # Obtain only the latest picture
         bing_url = BING_IMAGE_DAY_URL + "1"
@@ -21,14 +22,17 @@ def parse_picture_url(batch):
         bing_url = BING_IMAGE_DAY_URL + str(batch)
 
     response = urlopen(bing_url).read().decode("utf8")
-    urls = [picture["url"] for picture in json.loads(response)["images"]]
-    return urls
+    return json.loads(response)["images"]
 
 
-def get_filename(url, filename, batch, index):
+def format_date(date):
+    return f"{date[:4]}-{date[4:6]}-{date[6:]}"
+
+
+def get_filename(url, filename, batch, index, date=None):
     """If filename is not provided, return the original picture name. Otherwise,
     it returns the parameter filename and adds an index if the script is running
-    on batch mode."""
+    on batch mode. Only `url` or `filename` are mandatory parameters."""
     if filename:
         new_filename = filename
         if batch:
@@ -36,6 +40,9 @@ def get_filename(url, filename, batch, index):
     else:
         # The "id" field of the URL always starts with "OHR."
         new_filename = url[url.find("OHR.") + 4 : url.find("&")]
+
+    if date:
+        new_filename = f"{format_date(date)}_{new_filename}"
     return new_filename
 
 
@@ -55,6 +62,15 @@ if __name__ == "__main__":
         metavar="N",
         type=int,
         dest="batch",
+    )
+    parser.add_argument(
+        "-d",
+        "--date",
+        help="Add the date when the picture was published in Bing.com at the "
+        "beginning of the filename. [default: False].",
+        action="store_true",
+        default=False,
+        dest="date",
     )
     parser.add_argument(
         "-f",
@@ -93,7 +109,7 @@ if __name__ == "__main__":
         "-r",
         "--resolution",
         help="The resolution of the image to retrieve. Default and recommended "
-             "is 1920x1080 (usually doesn't contain watermarks).",
+        "is 1920x1080 (usually doesn't contain watermarks).",
         type=str,
         default="1920x1080",
         choices=["1920x1200", "1920x1080", "800x480", "400x240"],
@@ -114,15 +130,23 @@ if __name__ == "__main__":
     # Create the picture directory if it doesn't already exist
     Path(args.picturedir).mkdir(parents=True, exist_ok=True)
 
-    # Obtain the URLs to download the pictures
-    relative_urls = parse_picture_url(args.batch)
+    # Obtain the data of the picture to download
+    images_data = get_last_images_data(args.batch)
 
-    for i, url in enumerate(relative_urls):
+    for i, image in enumerate(images_data):
         # Build the absolute URL and set the desired resolution
-        absolute_url = BING_BASE_URL + re.sub(r"[0-9]*x[0-9]*", args.resolution, url)
+        absolute_url = BING_BASE_URL + re.sub(
+            r"[0-9]*x[0-9]*", args.resolution, image["url"]
+        )
 
         # Get the file name for the picture
-        filename = get_filename(absolute_url, args.filename, args.batch, i)
+        if args.date:
+            filename = get_filename(
+                absolute_url, args.filename, args.batch, i, image["startdate"]
+            )
+        else:
+            filename = get_filename(absolute_url, args.filename, args.batch, i)
+
         local_file_path = os.path.join(args.picturedir, filename)
 
         # Check if the file already exists
