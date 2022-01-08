@@ -11,7 +11,7 @@ $ python3 bing-wallpaper.py
 - To see available parameters, run the script with the `--help` flag
 ```commandline
 $ python3 bing-wallpaper.py --help
-usage: python3 bing-wallpaper.py [-h] [-b N] [-f] [-n FILENAME]
+usage: python3 bing-wallpaper.py [-h] [-b N] [-d] [-f] [-n FILENAME]
                                  [-p PICTUREDIR] [-q]
                                  [-r {1920x1200,1920x1080,800x480,400x240}]
 
@@ -21,6 +21,9 @@ directory.
 optional arguments:
   -h, --help            show this help message and exit
   -b N, --batch N       Download the latest <N> pictures.
+  -d, --date            Add the date when the picture was published in
+                        Bing.com at the beginning of the filename. [default:
+                        False].
   -f, --force           Force download of picture. This will overwrite the
                         picture if the filename already exists. [default:
                         False].
