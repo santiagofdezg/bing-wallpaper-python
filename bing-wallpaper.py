@@ -29,7 +29,7 @@ def get_filename(url, filename, batch, index):
     """If filename is not provided, return the original picture name. Otherwise,
     it returns the parameter filename and adds an index if the script is running
     on batch mode."""
-    if args.filename:
+    if filename:
         new_filename = filename
         if batch:
             new_filename = new_filename.replace(".jpg", f"_{str(index)}.jpg")
